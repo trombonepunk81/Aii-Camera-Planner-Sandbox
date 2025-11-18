@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Floor Plans</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .floor-select {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .floor-select select {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-width: 200px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .controls button {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        .controls button:hover {
+            background: #0056b3;
+        }
+        
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .main-content {
+            display: flex;
+            height: calc(100vh - 120px);
+            margin-top: 120px;
+            gap: 0;
+        }
+        
+        .left-panel {
+            flex: 1;
+            background: white;
+            border-right: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #pdf-container {
+            position: relative;
+            flex: 1;
+            overflow: auto;
+            background: #fff;
+        }
+        
+        #pdf-canvas {
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .camera-hotspot {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ff0000;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 4px;
+            border-radius: 3px;
+            border: 1px solid #ff0000;
+            white-space: nowrap;
+            user-select: none;
+        }
+        
+        .camera-hotspot:hover {
+            background: rgba(255, 0, 0, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .camera-hotspot.active {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #00ff00;
+            color: #00aa00;
+        }
+        
+        .camera-hotspot.hidden {
+            display: none;
+        }
+        
+        .camera-hotspot .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        .camera-hotspot:hover .tooltip {
+            opacity: 1;
+        }
+        
+        .right-panel {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        #camera-view-container {
+            flex: 1;
+            overflow: auto;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #camera-view-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+        
+        .placeholder {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+        
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 10px 20px;
+            border-bottom: 1px solid #ffc107;
+            color: #856404;
+            font-size: 13px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .left-panel,
+            .right-panel {
+                flex: 1;
+                border-right: none;
+            }
+            
+            .left-panel {
+                border-bottom: 2px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Camera Floor Plans</h1>
+        <div class="header-controls">
+            <div class="floor-select">
+                <label for="floor-selector"><strong>Select Floor Plan:</strong></label>
+                <select id="floor-selector">
+                    <option value="">-- Select a Floor Plan --</option>
+                </select>
+            </div>
+            
+            <div class="controls">
+                <button id="zoom-out">Zoom Out</button>
+                <button id="zoom-in">Zoom In</button>
+                <button id="reset-zoom">Reset Zoom</button>
+                <button id="toggle-hotspots">Show CAM Links</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <strong>Instructions:</strong> Double-click on the floor plan to zoom into that area. Use "Reset Zoom" to view the entire floor plan. Toggle camera links as needed.
+    </div>
+    
+    <div class="main-content">
+        <div class="left-panel">
+            <div class="panel-header">Floor Plan</div>
+            <div id="pdf-container">
+                <canvas id="pdf-canvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="panel-header">Camera View</div>
+            <div id="camera-view-container">
+                <div class="placeholder">
+                    <div class="placeholder-icon">📹</div>
+                    <h3>No Camera Selected</h3>
+                    <p>Click on a camera hotspot in the floor plan to view its feed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="floor-plans-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
