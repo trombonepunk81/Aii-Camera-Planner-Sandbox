@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-L16-17 - FOV3 - Camera View</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls {
+            background: #2d2d2d;
+            padding: 1rem;
+            border-bottom: 1px solid #404040;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: #3d3d3d;
+            border: 1px solid #505050;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #4d4d4d;
+            border-color: #606060;
+        }
+
+        .zoom-label {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .image-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: grab;
+        }
+
+        .image-container:active {
+            cursor: grabbing;
+        }
+
+        .image-wrapper {
+            transition: transform 0.1s ease-out;
+            transform-origin: center center;
+        }
+
+        .camera-image {
+            display: block;
+            max-width: none;
+            height: auto;
+        }
+
+        .error-message {
+            padding: 2rem;
+            text-align: center;
+            color: #ff6b6b;
+        }
+
+        .info-bar {
+            background: #252525;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #404040;
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="control-btn" onclick="zoomIn()">🔍 Zoom In</button>
+        <button class="control-btn" onclick="zoomOut()">🔍 Zoom Out</button>
+        <button class="control-btn" onclick="resetZoom()">↺ Reset</button>
+        <span class="zoom-label" id="zoom-level">100%</span>
+    </div>
+
+    <div class="image-container" id="image-container">
+        <div class="image-wrapper" id="image-wrapper">
+            <img src="C-L16-17-FOV3.jpg" alt="C-L16-17 - FOV3" class="camera-image" id="camera-image" 
+                 onerror="showError()">
+        </div>
+    </div>
+
+    <div class="info-bar">
+        📷 C-L16-17 - FOV3 | Use mouse wheel to zoom | Drag to pan
+    </div>
+
+    <script>
+        let currentZoom = 1;
+        let isDragging = false;
+        let startX, startY;
+        let translateX = 0, translateY = 0;
+
+        const imageWrapper = document.getElementById('image-wrapper');
+        const imageContainer = document.getElementById('image-container');
+        const zoomLabel = document.getElementById('zoom-level');
+
+        function updateTransform() {
+            imageWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+            zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom * 1.2, 5);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom / 1.2, 0.5);
+            updateTransform();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+        }
+
+        // Mouse wheel zoom
+        imageContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+
+        // Drag to pan
+        imageContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            imageContainer.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform();
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            imageContainer.style.cursor = 'grab';
+        });
+
+        function showError() {
+            imageContainer.innerHTML = `
+                <div class="error-message">
+                    <h2>⚠️ Image Not Found</h2>
+                    <p>The image file for C-L16-17 - FOV3 could not be loaded.</p>
+                    <p style="margin-top: 1rem; color: #888;">Expected: C-L16-17-FOV3.jpg</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
