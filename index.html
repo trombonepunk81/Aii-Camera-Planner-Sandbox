@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Camera Floor Plans</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,16 +13,18 @@
         }
         
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             overflow: hidden;
             height: 100vh;
+            color: #e2e8f0;
         }
         
         .header {
-            background: white;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
             padding: 15px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #334155;
             position: fixed;
             top: 0;
             left: 0;
@@ -29,10 +32,90 @@
             z-index: 100;
         }
         
-        .header h1 {
-            color: #333;
-            font-size: 24px;
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 10px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .header h1 {
+            color: #f1f5f9;
+            font-size: 24px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #334155;
+            color: #e2e8f0;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid #475569;
+        }
+        
+        .home-link:hover {
+            background: #475569;
+        }
+        
+        .home-link svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .floor-comments-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .floor-comments-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .floor-comments-btn:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .floor-comments-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .floor-comments-btn .badge {
+            background: rgba(255,255,255,0.25);
+            padding: 0.1rem 0.5rem;
+            border-radius: 10px;
+            font-size: 12px;
+            min-width: 24px;
         }
         
         .header-controls {
@@ -48,12 +131,23 @@
             gap: 10px;
         }
         
+        .floor-select label {
+            color: #94a3b8;
+        }
+        
         .floor-select select {
             padding: 8px 12px;
             font-size: 14px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #334155;
+            color: #e2e8f0;
             min-width: 200px;
+        }
+        
+        .floor-select select:focus {
+            outline: none;
+            border-color: #3b82f6;
         }
         
         .controls {
@@ -65,20 +159,24 @@
             padding: 8px 16px;
             font-size: 14px;
             cursor: pointer;
-            background: #007bff;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
             border: none;
-            border-radius: 4px;
-            transition: background 0.3s;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
         }
         
         .controls button:hover {
-            background: #0056b3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
         
         .controls button:disabled {
-            background: #ccc;
+            background: #475569;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .main-content {
@@ -86,30 +184,32 @@
             height: calc(100vh - 120px);
             margin-top: 120px;
             gap: 0;
+            position: relative;
         }
         
         .left-panel {
             flex: 1;
-            background: white;
-            border-right: 2px solid #ddd;
+            background: #1e293b;
+            border-right: 1px solid #334155;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
         
         .panel-header {
-            background: #f8f9fa;
+            background: #0f172a;
             padding: 10px 20px;
-            border-bottom: 1px solid #ddd;
-            font-weight: bold;
-            color: #555;
+            border-bottom: 1px solid #334155;
+            font-weight: 600;
+            color: #94a3b8;
         }
         
         #pdf-container {
             position: relative;
             flex: 1;
             overflow: auto;
-            background: #fff;
+            background: #0f172a;
         }
         
         #pdf-canvas {
@@ -121,56 +221,39 @@
             position: absolute;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 11px;
-            font-weight: bold;
-            color: #ff0000;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 2px 4px;
-            border-radius: 3px;
-            border: 1px solid #ff0000;
+            font-size: 10px;
+            font-weight: 700;
+            color: #3b82f6;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 2px solid #3b82f6;
             white-space: nowrap;
             user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
         .camera-hotspot:hover {
-            background: rgba(255, 0, 0, 0.2);
+            background: #3b82f6;
+            color: white;
             transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
         }
         
         .camera-hotspot.active {
-            background: rgba(0, 255, 0, 0.3);
-            border-color: #00ff00;
-            color: #00aa00;
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(34, 197, 94, 0.4);
         }
         
         .camera-hotspot.hidden {
             display: none;
         }
         
-        .camera-hotspot .tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            margin-bottom: 5px;
-            font-size: 12px;
-        }
-        
-        .camera-hotspot:hover .tooltip {
-            opacity: 1;
-        }
-        
         .right-panel {
             flex: 1;
-            background: white;
+            background: #1e293b;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -179,7 +262,7 @@
         #camera-view-container {
             flex: 1;
             overflow: auto;
-            background: #f8f9fa;
+            background: #0f172a;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -189,12 +272,12 @@
             width: 100%;
             height: 100%;
             border: none;
-            background: white;
+            background: #0f172a;
         }
         
         .placeholder {
             text-align: center;
-            color: #999;
+            color: #64748b;
             padding: 40px;
         }
         
@@ -204,12 +287,242 @@
             opacity: 0.3;
         }
         
+        .placeholder h3 {
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+        
         .instructions {
-            background: #fff3cd;
+            background: rgba(59, 130, 246, 0.1);
             padding: 10px 20px;
-            border-bottom: 1px solid #ffc107;
-            color: #856404;
+            border-bottom: 1px solid #334155;
+            color: #94a3b8;
             font-size: 13px;
+        }
+        
+        .instructions strong {
+            color: #60a5fa;
+        }
+        
+        /* ==========================================
+           UNIFIED COMMENTS PANEL 
+           ========================================== */
+        .comments-panel {
+            position: fixed;
+            top: 120px;
+            left: -400px;
+            width: 380px;
+            height: calc(100vh - 120px);
+            background: #0f172a;
+            z-index: 200;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+            border-right: 1px solid #334155;
+        }
+        
+        .comments-panel.active {
+            left: 0;
+        }
+        
+        .cp-header {
+            padding: 1rem;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cp-title {
+            color: #f1f5f9;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .cp-subtitle {
+            color: #3b82f6;
+            font-size: 0.8rem;
+            font-family: 'Space Mono', monospace;
+            margin-top: 0.25rem;
+        }
+        
+        .cp-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        
+        .cp-close:hover {
+            color: #f1f5f9;
+        }
+        
+        .cp-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .cp-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .cp-body::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        
+        .cp-body::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        
+        .cp-comment {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 0.875rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .cp-comment:hover {
+            border-color: #3b82f6;
+            transform: translateX(4px);
+        }
+        
+        .cp-comment.no-click {
+            cursor: default;
+        }
+        
+        .cp-comment.no-click:hover {
+            transform: none;
+        }
+        
+        .cp-comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .cp-comment-camera {
+            color: #3b82f6;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .cp-comment-time {
+            color: #64748b;
+            font-size: 0.7rem;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .cp-comment-author {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
+        
+        .cp-comment-text {
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .cp-comment-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #334155;
+            color: #3b82f6;
+            font-size: 0.75rem;
+        }
+        
+        .cp-comment-nav svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .cp-no-comments {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+        
+        .cp-no-comments svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        /* Comment Form */
+        .cp-form {
+            padding: 1rem;
+            background: #1e293b;
+            border-top: 1px solid #334155;
+            display: none;
+        }
+        
+        .cp-form.active {
+            display: block;
+        }
+        
+        .cp-form-group {
+            margin-bottom: 0.75rem;
+        }
+        
+        .cp-input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        
+        .cp-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .cp-input::placeholder {
+            color: #64748b;
+        }
+        
+        textarea.cp-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .cp-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .cp-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
         
         @media (max-width: 1024px) {
@@ -224,14 +537,36 @@
             }
             
             .left-panel {
-                border-bottom: 2px solid #ddd;
+                border-bottom: 1px solid #334155;
+            }
+            
+            .comments-panel {
+                width: 100%;
+                left: -100%;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Camera Floor Plans</h1>
+        <div class="header-top">
+            <div class="header-left">
+                <h1>Camera Floor Plans</h1>
+                <a href="home.html" class="home-link">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Project Home
+                </a>
+            </div>
+            <button class="floor-comments-btn" id="floor-comments-btn" onclick="openFloorComments()" disabled>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Floor Comments
+                <span class="badge" id="floor-comment-count">0</span>
+            </button>
+        </div>
         <div class="header-controls">
             <div class="floor-select">
                 <label for="floor-selector"><strong>Select Floor Plan:</strong></label>
@@ -251,6 +586,34 @@
     
     <div class="instructions">
         <strong>Instructions:</strong> Double-click on the floor plan to zoom into that area. Use "Reset Zoom" to view the entire floor plan. Toggle camera links as needed.
+    </div>
+    
+    <!-- UNIFIED COMMENTS PANEL -->
+    <div class="comments-panel" id="comments-panel">
+        <div class="cp-header">
+            <div>
+                <div class="cp-title" id="cp-title">Comments</div>
+                <div class="cp-subtitle" id="cp-subtitle"></div>
+            </div>
+            <button class="cp-close" onclick="closeCommentsPanel()">&times;</button>
+        </div>
+        <div class="cp-body" id="cp-body">
+            <div class="cp-no-comments">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <p>No comments yet</p>
+            </div>
+        </div>
+        <div class="cp-form" id="cp-form">
+            <div class="cp-form-group">
+                <input type="text" class="cp-input" id="comment-author" placeholder="Your name">
+            </div>
+            <div class="cp-form-group">
+                <textarea class="cp-input" id="comment-text" placeholder="Add your comment..."></textarea>
+            </div>
+            <button class="cp-submit" onclick="submitComment()">Post Comment</button>
+        </div>
     </div>
     
     <div class="main-content">

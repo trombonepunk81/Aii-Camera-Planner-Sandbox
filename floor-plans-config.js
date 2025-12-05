@@ -1,6 +1,5 @@
 // Floor Plans Configuration
-// This file contains the configuration for all floor plans, cameras, and their positions
-// Generated: 2025-12-02 16:38:49
+// Generated: 2025-12-05 16:42:43
 
 const floorPlansConfig = [
     {
@@ -1583,6 +1582,4 @@ const floorPlansConfig = [
             }
         ]
     }
-    
-    // You can add more floor plans here following the same structure
 ];
