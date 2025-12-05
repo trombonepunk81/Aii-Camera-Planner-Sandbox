@@ -3,185 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C-L30-07 - FOV1 - Camera View</title>
+    <title>C-L30-07 - FOV1</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #1a1a1a;
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            overflow: hidden;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
-
         .controls {
             background: #2d2d2d;
-            padding: 1rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid #404040;
             display: flex;
             gap: 0.5rem;
             align-items: center;
         }
-
-        .control-btn {
+        .btn {
             background: #3d3d3d;
             border: 1px solid #505050;
-            color: #ffffff;
+            color: #fff;
             padding: 0.5rem 1rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-family: inherit;
         }
-
-        .control-btn:hover {
-            background: #4d4d4d;
-            border-color: #606060;
+        .btn:hover { background: #4d4d4d; }
+        .btn.comments {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
+        .btn.comments:hover { background: #2563eb; }
         .zoom-label {
             color: #b0b0b0;
-            font-size: 0.9rem;
-            margin-left: auto;
+            font-size: 0.85rem;
+            font-family: 'Space Mono', monospace;
         }
-
-        .image-container {
+        .image-area {
             flex: 1;
             overflow: auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
             cursor: grab;
         }
-
-        .image-container:active {
-            cursor: grabbing;
+        .image-area:active { cursor: grabbing; }
+        .wrapper {
+            transition: transform 0.1s;
+            transform-origin: center;
         }
-
-        .image-wrapper {
-            transition: transform 0.1s ease-out;
-            transform-origin: center center;
-        }
-
-        .camera-image {
+        .wrapper img {
             display: block;
             max-width: none;
-            height: auto;
         }
-
-        .error-message {
+        .error {
             padding: 2rem;
             text-align: center;
             color: #ff6b6b;
         }
-
-        .info-bar {
+        .info {
             background: #252525;
             padding: 0.75rem 1rem;
             border-top: 1px solid #404040;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #b0b0b0;
+            font-family: 'Space Mono', monospace;
         }
     </style>
 </head>
 <body>
     <div class="controls">
-        <button class="control-btn" onclick="zoomIn()">🔍 Zoom In</button>
-        <button class="control-btn" onclick="zoomOut()">🔍 Zoom Out</button>
-        <button class="control-btn" onclick="resetZoom()">↺ Reset</button>
-        <span class="zoom-label" id="zoom-level">100%</span>
+        <button class="btn" onclick="zoom(-0.25)">Zoom Out</button>
+        <button class="btn" onclick="zoom(0.25)">Zoom In</button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button class="btn" onclick="resetZoom()">Reset</button>
+        <button class="btn comments" onclick="openComments()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            Comments
+        </button>
     </div>
-
-    <div class="image-container" id="image-container">
-        <div class="image-wrapper" id="image-wrapper">
-            <img src="C-L30-07-FOV1.jpg" alt="C-L30-07 - FOV1" class="camera-image" id="camera-image" 
-                 onerror="showError()">
+    <div class="image-area" id="imageArea">
+        <div class="wrapper" id="wrapper">
+            <img src="C-L30-07-FOV1.jpg" alt="C-L30-07 - FOV1" onerror="this.parentElement.innerHTML='<div class=error><h3>Image not found</h3><p>C-L30-07-FOV1.jpg</p></div>'">
         </div>
     </div>
-
-    <div class="info-bar">
-        📷 C-L30-07 - FOV1 | Use mouse wheel to zoom | Drag to pan
-    </div>
-
+    <div class="info">Camera: C-L30-07 - FOV1</div>
     <script>
-        let currentZoom = 1;
-        let isDragging = false;
-        let startX, startY;
-        let translateX = 0, translateY = 0;
-
-        const imageWrapper = document.getElementById('image-wrapper');
-        const imageContainer = document.getElementById('image-container');
-        const zoomLabel = document.getElementById('zoom-level');
-
-        function updateTransform() {
-            imageWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
-            zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+        let scale = 1;
+        const wrapper = document.getElementById('wrapper');
+        const area = document.getElementById('imageArea');
+        
+        function zoom(d) {
+            scale = Math.max(0.25, Math.min(5, scale + d));
+            wrapper.style.transform = 'scale(' + scale + ')';
+            document.getElementById('zoomLabel').textContent = Math.round(scale * 100) + '%';
         }
-
-        function zoomIn() {
-            currentZoom = Math.min(currentZoom * 1.2, 5);
-            updateTransform();
-        }
-
-        function zoomOut() {
-            currentZoom = Math.max(currentZoom / 1.2, 0.5);
-            updateTransform();
-        }
-
+        
         function resetZoom() {
-            currentZoom = 1;
-            translateX = 0;
-            translateY = 0;
-            updateTransform();
+            scale = 1;
+            wrapper.style.transform = 'scale(1)';
+            document.getElementById('zoomLabel').textContent = '100%';
         }
-
-        // Mouse wheel zoom
-        imageContainer.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            if (e.deltaY < 0) {
-                zoomIn();
-            } else {
-                zoomOut();
-            }
-        });
-
-        // Drag to pan
-        imageContainer.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - translateX;
-            startY = e.clientY - translateY;
-            imageContainer.style.cursor = 'grabbing';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            translateX = e.clientX - startX;
-            translateY = e.clientY - startY;
-            updateTransform();
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            imageContainer.style.cursor = 'grab';
-        });
-
-        function showError() {
-            imageContainer.innerHTML = `
-                <div class="error-message">
-                    <h2>⚠️ Image Not Found</h2>
-                    <p>The image file for C-L30-07 - FOV1 could not be loaded.</p>
-                    <p style="margin-top: 1rem; color: #888;">Expected: C-L30-07-FOV1.jpg</p>
-                </div>
-            `;
+        
+        function openComments() {
+            window.parent.postMessage({ type: 'openComments' }, '*');
         }
+        
+        // Pan
+        let drag = false, sx, sy, sl, st;
+        area.onmousedown = (e) => { drag = true; sx = e.pageX; sy = e.pageY; sl = area.scrollLeft; st = area.scrollTop; };
+        area.onmouseleave = area.onmouseup = () => drag = false;
+        area.onmousemove = (e) => { if (!drag) return; e.preventDefault(); area.scrollLeft = sl - (e.pageX - sx); area.scrollTop = st - (e.pageY - sy); };
     </script>
 </body>
 </html>
