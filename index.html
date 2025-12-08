@@ -638,10 +638,43 @@
         </div>
     </div>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        // Auth check before loading app
+        const firebaseConfigAuth = {
+            apiKey: "AIzaSyC-yHyl8MBiCS455xHIDYkMLDXOyf83_8Y",
+            authDomain: "project-001-camera-planner.firebaseapp.com",
+            databaseURL: "https://project-001-camera-planner-default-rtdb.firebaseio.com",
+            projectId: "project-001-camera-planner",
+            storageBucket: "project-001-camera-planner.firebasestorage.app",
+            messagingSenderId: "461451825806",
+            appId: "1:461451825806:web:7267d184ca0718436befdf"
+        };
+        
+        // Only initialize if not already initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfigAuth);
+        }
+        
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Check if user is approved
+            const snapshot = await firebase.database().ref('users').child(user.uid).once('value');
+            const userData = snapshot.val();
+            
+            if (!userData || userData.status === 'pending') {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="floor-plans-config.js"></script>
     <script src="app.js"></script>
 </body>

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Planner - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid #475569;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-input::placeholder {
+            color: #64748b;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            border: none;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #475569;
+        }
+
+        .divider span {
+            padding: 0 1rem;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 1rem;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .link-text a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .success-msg {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .info-msg {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #60a5fa;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        /* View states */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            color: #e2e8f0;
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .pending-notice {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .pending-notice svg {
+            width: 64px;
+            height: 64px;
+            color: #f59e0b;
+            margin-bottom: 1rem;
+        }
+
+        .pending-notice h2 {
+            color: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        .pending-notice p {
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+            <span class="logo-text">Camera Planner</span>
+        </div>
+
+        <div class="card">
+            <!-- LOGIN VIEW -->
+            <div class="view active" id="login-view">
+                <div class="card-header">
+                    <h1>Welcome Back</h1>
+                    <p>Sign in to access the project</p>
+                </div>
+
+                <div class="error-msg" id="login-error"></div>
+
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="login-email" placeholder="you@company.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" id="login-password" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="login-btn">
+                        Sign In
+                    </button>
+                </form>
+
+                <p class="link-text">
+                    <a href="#" onclick="showView('forgot-view')">Forgot password?</a>
+                </p>
+
+                <div class="divider"><span>or</span></div>
+
+                <button class="btn btn-secondary" onclick="showView('request-view')">
+                    Request Access
+                </button>
+            </div>
+
+            <!-- REQUEST ACCESS VIEW -->
+            <div class="view" id="request-view">
+                <a href="#" class="back-link" onclick="showView('login-view')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to login
+                </a>
+
+                <div class="card-header">
+                    <h1>Request Access</h1>
+                    <p>Fill out your details to request project access</p>
+                </div>
+
+                <div class="error-msg" id="request-error"></div>
+                <div class="success-msg" id="request-success"></div>
+
+                <form id="request-form" onsubmit="handleRequestAccess(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Name *</label>
+                            <input type="text" class="form-input" id="request-name" placeholder="John Smith" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Company *</label>
+                            <input type="text" class="form-input" id="request-company" placeholder="Acme Corp" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Role *</label>
+                            <input type="text" class="form-input" id="request-role" placeholder="Project Manager" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-input" id="request-email" placeholder="you@company.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input type="password" class="form-input" id="request-password" placeholder="Min 6 characters" minlength="6" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password *</label>
+                        <input type="password" class="form-input" id="request-password-confirm" placeholder="Confirm password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="request-btn">
+                        Submit Request
+                    </button>
+                </form>
+            </div>
+
+            <!-- FORGOT PASSWORD VIEW -->
+            <div class="view" id="forgot-view">
+                <a href="#" class="back-link" onclick="showView('login-view')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to login
+                </a>
+
+                <div class="card-header">
+                    <h1>Reset Password</h1>
+                    <p>Enter your email to receive a reset link</p>
+                </div>
+
+                <div class="error-msg" id="forgot-error"></div>
+                <div class="success-msg" id="forgot-success"></div>
+
+                <form id="forgot-form" onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="forgot-email" placeholder="you@company.com" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="forgot-btn">
+                        Send Reset Link
+                    </button>
+                </form>
+            </div>
+
+            <!-- PENDING APPROVAL VIEW -->
+            <div class="view" id="pending-view">
+                <div class="pending-notice">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h2>Access Pending</h2>
+                    <p>Your request has been submitted. You'll receive an email once approved.</p>
+                    <button class="btn btn-secondary" onclick="handleLogout()">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <script>
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-yHyl8MBiCS455xHIDYkMLDXOyf83_8Y",
+            authDomain: "project-001-camera-planner.firebaseapp.com",
+            databaseURL: "https://project-001-camera-planner-default-rtdb.firebaseio.com",
+            projectId: "project-001-camera-planner",
+            storageBucket: "project-001-camera-planner.firebasestorage.app",
+            messagingSenderId: "461451825806",
+            appId: "1:461451825806:web:7267d184ca0718436befdf"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const usersRef = database.ref('users');
+
+        // EmailJS Configuration (we'll set this up)
+        const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID'; // You'll replace this
+        const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // You'll replace this
+        const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // You'll replace this
+        const ADMIN_EMAIL = 'emory.burch@aptitudeii.com';
+
+        // ==========================================
+        // VIEW MANAGEMENT
+        // ==========================================
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            
+            // Clear messages
+            document.querySelectorAll('.error-msg, .success-msg').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function setButtonLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.innerHTML;
+                btn.innerHTML = '<div class="spinner"></div>';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn.dataset.originalText;
+            }
+        }
+
+        // ==========================================
+        // AUTH STATE LISTENER
+        // ==========================================
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Check user status in database
+                const snapshot = await usersRef.child(user.uid).once('value');
+                const userData = snapshot.val();
+
+                if (userData) {
+                    if (userData.status === 'pending') {
+                        showView('pending-view');
+                    } else if (userData.status === 'member' || userData.status === 'admin') {
+                        // Approved - redirect to home
+                        window.location.href = 'home.html';
+                    }
+                } else {
+                    // No user data - shouldn't happen, but handle it
+                    showView('login-view');
+                }
+            }
+        });
+
+        // ==========================================
+        // LOGIN
+        // ==========================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            setButtonLoading('login-btn', true);
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                // Auth state listener will handle redirect
+            } catch (error) {
+                let message = 'Login failed. Please try again.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    message = 'Invalid email or password.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Invalid email format.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    message = 'Too many attempts. Please try again later.';
+                }
+                showError('login-error', message);
+                setButtonLoading('login-btn', false);
+            }
+        }
+
+        // ==========================================
+        // REQUEST ACCESS
+        // ==========================================
+        async function handleRequestAccess(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('request-name').value.trim();
+            const company = document.getElementById('request-company').value.trim();
+            const role = document.getElementById('request-role').value.trim();
+            const email = document.getElementById('request-email').value.trim();
+            const password = document.getElementById('request-password').value;
+            const passwordConfirm = document.getElementById('request-password-confirm').value;
+
+            // Validation
+            if (password !== passwordConfirm) {
+                showError('request-error', 'Passwords do not match.');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('request-error', 'Password must be at least 6 characters.');
+                return;
+            }
+
+            setButtonLoading('request-btn', true);
+
+            try {
+                // Create Firebase Auth account
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Save user data to database with pending status
+                await usersRef.child(user.uid).set({
+                    name: name,
+                    company: company,
+                    role: role,
+                    email: email,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                });
+
+                // Send email notification (if EmailJS is configured)
+                await sendAccessRequestEmail(name, company, role, email);
+
+                // Show pending view
+                showView('pending-view');
+
+            } catch (error) {
+                let message = 'Request failed. Please try again.';
+                if (error.code === 'auth/email-already-in-use') {
+                    message = 'An account with this email already exists.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Invalid email format.';
+                } else if (error.code === 'auth/weak-password') {
+                    message = 'Password is too weak.';
+                }
+                showError('request-error', message);
+                setButtonLoading('request-btn', false);
+            }
+        }
+
+        // ==========================================
+        // FORGOT PASSWORD
+        // ==========================================
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('forgot-email').value.trim();
+
+            setButtonLoading('forgot-btn', true);
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showSuccess('forgot-success', 'Password reset email sent! Check your inbox.');
+                document.getElementById('forgot-form').reset();
+            } catch (error) {
+                let message = 'Failed to send reset email.';
+                if (error.code === 'auth/user-not-found') {
+                    message = 'No account found with this email.';
+                } else if (error.code === 'auth/invalid-email') {
+                    message = 'Invalid email format.';
+                }
+                showError('forgot-error', message);
+            }
+
+            setButtonLoading('forgot-btn', false);
+        }
+
+        // ==========================================
+        // LOGOUT
+        // ==========================================
+        async function handleLogout() {
+            await auth.signOut();
+            showView('login-view');
+        }
+
+        // ==========================================
+        // EMAIL NOTIFICATION
+        // ==========================================
+        async function sendAccessRequestEmail(name, company, role, email) {
+            // Skip if EmailJS not configured
+            if (EMAILJS_SERVICE_ID === 'YOUR_SERVICE_ID') {
+                console.log('EmailJS not configured - skipping email notification');
+                console.log('New access request:', { name, company, role, email });
+                return;
+            }
+
+            try {
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    to_email: ADMIN_EMAIL,
+                    from_name: name,
+                    from_email: email,
+                    company: company,
+                    role: role,
+                    message: `${name} from ${company} (${role}) has requested access to Camera Planner.`
+                }, EMAILJS_PUBLIC_KEY);
+                console.log('Email notification sent');
+            } catch (error) {
+                console.error('Failed to send email:', error);
+                // Don't block the request if email fails
+            }
+        }
+    </script>
+</body>
+</html>

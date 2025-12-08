@@ -14,8 +14,10 @@ const firebaseConfig = {
     appId: "1:461451825806:web:7267d184ca0718436befdf"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase only if not already done
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const database = firebase.database();
 const commentsRef = database.ref('comments');
 
