@@ -73,6 +73,29 @@
             align-items: center;
         }
 
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            padding: 0.4rem 0.8rem;
+            background: #1e293b;
+            border-radius: 6px;
+            border: 1px solid #334155;
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f59e0b;
+        }
+
+        .connection-dot.connected {
+            background: #22c55e;
+        }
+
         .btn {
             padding: 0.6rem 1.2rem;
             border-radius: 8px;
@@ -625,6 +648,36 @@
             margin-bottom: 1rem;
         }
 
+        /* Loading spinner */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #334155;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         @media (max-width: 900px) {
             .project-hero {
                 grid-template-columns: 1fr;
@@ -652,6 +705,12 @@
     </style>
 </head>
 <body>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Connecting to database...</p>
+    </div>
+
     <header class="header">
         <div class="header-content">
             <div class="logo">
@@ -663,6 +722,10 @@
                 <span class="logo-text">Camera Planner</span>
             </div>
             <div class="header-actions">
+                <div class="connection-status">
+                    <div class="connection-dot" id="connection-dot"></div>
+                    <span id="connection-text">Connecting...</span>
+                </div>
                 <button class="btn btn-secondary" id="admin-btn" onclick="openAdminModal()">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -770,16 +833,37 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <script src="floor-plans-config.js"></script>
     <script>
-        // Storage keys
-        const STORAGE_KEYS = {
-            projectData: 'cameraPlanner_projectData',
-            comments: 'cameraPlanner_comments',
-            adminPassword: 'cameraPlanner_adminPassword'
+        // ==========================================
+        // FIREBASE CONFIGURATION
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-yHyl8MBiCS455xHIDYkMLDXOyf83_8Y",
+            authDomain: "project-001-camera-planner.firebaseapp.com",
+            databaseURL: "https://project-001-camera-planner-default-rtdb.firebaseio.com",
+            projectId: "project-001-camera-planner",
+            storageBucket: "project-001-camera-planner.firebasestorage.app",
+            messagingSenderId: "461451825806",
+            appId: "1:461451825806:web:7267d184ca0718436befdf"
         };
 
-        // State
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Database references
+        const projectDataRef = database.ref('projectData');
+        const commentsRef = database.ref('comments');
+        const settingsRef = database.ref('settings');
+
+        // ==========================================
+        // STATE
+        // ==========================================
         let isEditMode = false;
         let showingArchived = false;
         let currentFilter = 'all';
@@ -788,131 +872,66 @@
             image: '',
             personnel: [{ name: '', company: '', role: '', email: '' }]
         };
+        let commentsData = [];
+        let adminPassword = null;
 
-        // Initialize
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
-            loadProjectData();
-            renderCommentFilters();
-            renderComments();
-            renderPersonnel();
+            initializeFirebaseListeners();
         });
 
-        // ==========================================
-        // ADMIN & PASSWORD FUNCTIONS
-        // ==========================================
+        function initializeFirebaseListeners() {
+            // Listen for project data changes
+            projectDataRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    projectData = data;
+                }
+                renderProjectData();
+                renderPersonnel();
+            });
 
-        function openAdminModal() {
-            const hasPassword = localStorage.getItem(STORAGE_KEYS.adminPassword);
-            const modal = document.getElementById('admin-modal');
-            const title = document.getElementById('modal-title');
-            const desc = document.getElementById('modal-description');
-            const confirmInput = document.getElementById('confirm-password-input');
-            const submitBtn = document.getElementById('modal-submit-btn');
-            const errorMsg = document.getElementById('error-msg');
-            
-            errorMsg.style.display = 'none';
-            document.getElementById('password-input').value = '';
-            document.getElementById('confirm-password-input').value = '';
-            
-            if (hasPassword) {
-                title.textContent = 'Admin Access';
-                desc.textContent = 'Enter the admin password to enable editing.';
-                confirmInput.style.display = 'none';
-                submitBtn.textContent = 'Enter';
-            } else {
-                title.textContent = 'Set Admin Password';
-                desc.textContent = 'Create a password to protect admin features.';
-                confirmInput.style.display = 'block';
-                submitBtn.textContent = 'Set Password';
-            }
-            
-            modal.classList.add('active');
-            document.getElementById('password-input').focus();
-        }
+            // Listen for comments changes (real-time!)
+            commentsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                commentsData = data ? Object.entries(data).map(([key, value]) => ({
+                    ...value,
+                    firebaseKey: key
+                })) : [];
+                renderCommentFilters();
+                renderComments();
+            });
 
-        function closeAdminModal() {
-            document.getElementById('admin-modal').classList.remove('active');
-        }
+            // Listen for admin password
+            settingsRef.child('adminPassword').on('value', (snapshot) => {
+                adminPassword = snapshot.val();
+            });
 
-        function submitAdminModal() {
-            const hasPassword = localStorage.getItem(STORAGE_KEYS.adminPassword);
-            const password = document.getElementById('password-input').value;
-            const confirmPassword = document.getElementById('confirm-password-input').value;
-            const errorMsg = document.getElementById('error-msg');
-            
-            if (hasPassword) {
-                if (password === localStorage.getItem(STORAGE_KEYS.adminPassword)) {
-                    closeAdminModal();
-                    enterEditMode();
+            // Connection state
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snapshot) => {
+                const connected = snapshot.val();
+                const dot = document.getElementById('connection-dot');
+                const text = document.getElementById('connection-text');
+                const loading = document.getElementById('loading-overlay');
+                
+                if (connected) {
+                    dot.classList.add('connected');
+                    text.textContent = 'Live';
+                    loading.classList.add('hidden');
                 } else {
-                    errorMsg.textContent = 'Incorrect password';
-                    errorMsg.style.display = 'block';
+                    dot.classList.remove('connected');
+                    text.textContent = 'Offline';
                 }
-            } else {
-                if (!password) {
-                    errorMsg.textContent = 'Please enter a password';
-                    errorMsg.style.display = 'block';
-                    return;
-                }
-                if (password !== confirmPassword) {
-                    errorMsg.textContent = 'Passwords do not match';
-                    errorMsg.style.display = 'block';
-                    return;
-                }
-                localStorage.setItem(STORAGE_KEYS.adminPassword, password);
-                closeAdminModal();
-                enterEditMode();
-            }
-        }
-
-        function enterEditMode() {
-            isEditMode = true;
-            document.getElementById('project-hero').classList.add('edit-mode');
-            document.getElementById('comments-section').classList.add('edit-mode');
-            document.getElementById('exit-edit-btn').style.display = 'inline-flex';
-            document.getElementById('admin-btn').style.display = 'none';
-            renderComments();
-        }
-
-        function exitEditMode() {
-            isEditMode = false;
-            document.getElementById('project-hero').classList.remove('edit-mode');
-            document.getElementById('comments-section').classList.remove('edit-mode');
-            document.getElementById('exit-edit-btn').style.display = 'none';
-            document.getElementById('admin-btn').style.display = 'inline-flex';
-            saveProjectData();
-            renderComments();
-        }
-
-        // ==========================================
-        // DELETE ALL COMMENTS
-        // ==========================================
-
-        function openDeleteAllModal() {
-            document.getElementById('delete-modal').classList.add('active');
-        }
-
-        function closeDeleteAllModal() {
-            document.getElementById('delete-modal').classList.remove('active');
-        }
-
-        function confirmDeleteAll() {
-            localStorage.setItem(STORAGE_KEYS.comments, '[]');
-            closeDeleteAllModal();
-            renderCommentFilters();
-            renderComments();
+            });
         }
 
         // ==========================================
         // PROJECT DATA FUNCTIONS
         // ==========================================
-
-        function loadProjectData() {
-            const saved = localStorage.getItem(STORAGE_KEYS.projectData);
-            if (saved) {
-                projectData = JSON.parse(saved);
-            }
-            
+        function renderProjectData() {
             document.getElementById('project-title-display').textContent = projectData.title || 'Project Name';
             document.getElementById('project-title-input').value = projectData.title || '';
             
@@ -925,7 +944,6 @@
 
         function saveProjectData() {
             projectData.title = document.getElementById('project-title-input').value || 'Project Name';
-            document.getElementById('project-title-display').textContent = projectData.title;
             
             const personnelCards = document.querySelectorAll('.personnel-card');
             projectData.personnel = [];
@@ -945,19 +963,25 @@
                 projectData.personnel = [{ name: '', company: '', role: '', email: '' }];
             }
             
-            localStorage.setItem(STORAGE_KEYS.projectData, JSON.stringify(projectData));
-            renderPersonnel();
+            // Save to Firebase
+            projectDataRef.set(projectData);
         }
 
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
+            // Check file size (Firebase has limits, keep under 1MB for base64)
+            if (file.size > 1024 * 1024) {
+                alert('Image too large. Please use an image under 1MB.');
+                return;
+            }
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 projectData.image = e.target.result;
                 document.getElementById('project-image').src = e.target.result;
-                localStorage.setItem(STORAGE_KEYS.projectData, JSON.stringify(projectData));
+                projectDataRef.set(projectData);
             };
             reader.readAsDataURL(file);
         }
@@ -1016,24 +1040,120 @@
         }
 
         // ==========================================
-        // COMMENTS
+        // ADMIN & PASSWORD FUNCTIONS
         // ==========================================
-
-        function getComments() {
-            return JSON.parse(localStorage.getItem(STORAGE_KEYS.comments) || '[]');
+        function openAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-description');
+            const confirmInput = document.getElementById('confirm-password-input');
+            const submitBtn = document.getElementById('modal-submit-btn');
+            const errorMsg = document.getElementById('error-msg');
+            
+            errorMsg.style.display = 'none';
+            document.getElementById('password-input').value = '';
+            document.getElementById('confirm-password-input').value = '';
+            
+            if (adminPassword) {
+                title.textContent = 'Admin Access';
+                desc.textContent = 'Enter the admin password to enable editing.';
+                confirmInput.style.display = 'none';
+                submitBtn.textContent = 'Enter';
+            } else {
+                title.textContent = 'Set Admin Password';
+                desc.textContent = 'Create a password to protect admin features.';
+                confirmInput.style.display = 'block';
+                submitBtn.textContent = 'Set Password';
+            }
+            
+            modal.classList.add('active');
+            document.getElementById('password-input').focus();
         }
 
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.remove('active');
+        }
+
+        function submitAdminModal() {
+            const password = document.getElementById('password-input').value;
+            const confirmPassword = document.getElementById('confirm-password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (adminPassword) {
+                if (password === adminPassword) {
+                    closeAdminModal();
+                    enterEditMode();
+                } else {
+                    errorMsg.textContent = 'Incorrect password';
+                    errorMsg.style.display = 'block';
+                }
+            } else {
+                if (!password) {
+                    errorMsg.textContent = 'Please enter a password';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    errorMsg.textContent = 'Passwords do not match';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                // Save password to Firebase
+                settingsRef.child('adminPassword').set(password);
+                closeAdminModal();
+                enterEditMode();
+            }
+        }
+
+        function enterEditMode() {
+            isEditMode = true;
+            document.getElementById('project-hero').classList.add('edit-mode');
+            document.getElementById('comments-section').classList.add('edit-mode');
+            document.getElementById('exit-edit-btn').style.display = 'inline-flex';
+            document.getElementById('admin-btn').style.display = 'none';
+            renderComments();
+        }
+
+        function exitEditMode() {
+            isEditMode = false;
+            document.getElementById('project-hero').classList.remove('edit-mode');
+            document.getElementById('comments-section').classList.remove('edit-mode');
+            document.getElementById('exit-edit-btn').style.display = 'none';
+            document.getElementById('admin-btn').style.display = 'inline-flex';
+            saveProjectData();
+            renderComments();
+        }
+
+        // ==========================================
+        // DELETE ALL COMMENTS
+        // ==========================================
+        function openDeleteAllModal() {
+            document.getElementById('delete-modal').classList.add('active');
+        }
+
+        function closeDeleteAllModal() {
+            document.getElementById('delete-modal').classList.remove('active');
+        }
+
+        function confirmDeleteAll() {
+            // Delete all comments from Firebase
+            commentsRef.remove();
+            closeDeleteAllModal();
+        }
+
+        // ==========================================
+        // COMMENTS FUNCTIONS
+        // ==========================================
         function renderCommentFilters() {
-            const comments = getComments();
             const container = document.getElementById('comment-filters');
             
             const floorCounts = {};
-            comments.filter(c => !c.archived).forEach(c => {
+            commentsData.filter(c => !c.archived).forEach(c => {
                 const floor = c.floorId || 'Unknown';
                 floorCounts[floor] = (floorCounts[floor] || 0) + 1;
             });
             
-            const totalActive = comments.filter(c => !c.archived).length;
+            const totalActive = commentsData.filter(c => !c.archived).length;
             
             let html = `
                 <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">
@@ -1059,11 +1179,10 @@
         }
 
         function renderComments() {
-            const comments = getComments();
             const container = document.getElementById('comments-list');
             
-            const activeComments = comments.filter(c => !c.archived);
-            const archivedComments = comments.filter(c => c.archived);
+            const activeComments = commentsData.filter(c => !c.archived);
+            const archivedComments = commentsData.filter(c => c.archived);
             
             document.getElementById('active-count').textContent = activeComments.length;
             document.getElementById('archived-count').textContent = archivedComments.length;
@@ -1101,7 +1220,7 @@
                     <div class="comment-text">${escapeHtml(comment.text)}</div>
                     <div class="comment-actions">
                         <label class="archive-toggle">
-                            <input type="checkbox" ${comment.archived ? 'checked' : ''} onchange="toggleArchive(${comment.id}, this.checked)">
+                            <input type="checkbox" ${comment.archived ? 'checked' : ''} onchange="toggleArchive('${comment.firebaseKey}', this.checked)">
                             ${comment.archived ? 'Archived' : 'Archive'}
                         </label>
                         <a href="index.html?floor=${encodeURIComponent(comment.floorId)}&camera=${encodeURIComponent(comment.cameraId)}&openComments=true" class="view-camera-link">
@@ -1131,21 +1250,14 @@
             renderComments();
         }
 
-        function toggleArchive(commentId, archived) {
-            const comments = getComments();
-            const comment = comments.find(c => c.id === commentId);
-            if (comment) {
-                comment.archived = archived;
-                localStorage.setItem(STORAGE_KEYS.comments, JSON.stringify(comments));
-                renderCommentFilters();
-                renderComments();
-            }
+        function toggleArchive(firebaseKey, archived) {
+            // Update in Firebase
+            commentsRef.child(firebaseKey).update({ archived: archived });
         }
 
         // ==========================================
         // UTILITY FUNCTIONS
         // ==========================================
-
         function formatTimestamp(timestamp) {
             const date = new Date(timestamp);
             const now = new Date();

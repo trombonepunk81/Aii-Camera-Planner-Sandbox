@@ -1,10 +1,33 @@
 // Main application logic for the camera floor plan viewer
-// Version 3.0 - Unified comments panel
+// Version 3.1 - Firebase Real-time Database Integration
 
-// Initialize PDF.js
+// ==========================================
+// FIREBASE CONFIGURATION
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyC-yHyl8MBiCS455xHIDYkMLDXOyf83_8Y",
+    authDomain: "project-001-camera-planner.firebaseapp.com",
+    databaseURL: "https://project-001-camera-planner-default-rtdb.firebaseio.com",
+    projectId: "project-001-camera-planner",
+    storageBucket: "project-001-camera-planner.firebasestorage.app",
+    messagingSenderId: "461451825806",
+    appId: "1:461451825806:web:7267d184ca0718436befdf"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const commentsRef = database.ref('comments');
+
+// ==========================================
+// PDF.js INITIALIZATION
+// ==========================================
 pdfjsLib.GlobalWorkerOptions.workerSrc = 
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// ==========================================
+// STATE VARIABLES
+// ==========================================
 let pdfDoc = null;
 let pageNum = 1;
 let pageRendering = false;
@@ -18,23 +41,49 @@ let currentCamera = null;
 let hotspotsVisible = false;
 
 // Comments state
-const COMMENTS_STORAGE_KEY = 'cameraPlanner_comments';
 let commentsPanelOpen = false;
 let commentsPanelMode = null; // 'floor' or 'fov'
 let shouldOpenCommentsAfterLoad = false;
+let commentsData = []; // Will be populated from Firebase
 
-// Load saved author name
+// Load saved author name (still use localStorage for user preference)
 const savedAuthor = localStorage.getItem('cameraPlanner_authorName');
 if (savedAuthor) {
     document.getElementById('comment-author').value = savedAuthor;
 }
 
-// Initialize the application
+// ==========================================
+// INITIALIZATION
+// ==========================================
 function init() {
     populateFloorSelector();
     setupEventListeners();
     setupIframeMessageListener();
+    initializeFirebaseListeners();
     checkUrlParameters();
+}
+
+function initializeFirebaseListeners() {
+    // Listen for comments changes (real-time!)
+    commentsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        commentsData = data ? Object.entries(data).map(([key, value]) => ({
+            ...value,
+            firebaseKey: key
+        })) : [];
+        
+        // Update floor comments count
+        updateFloorCommentsCount();
+        
+        // Refresh comments panel if open
+        if (commentsPanelOpen) {
+            if (commentsPanelMode === 'floor') {
+                renderFloorCommentsInPanel();
+            } else if (commentsPanelMode === 'fov') {
+                renderFOVCommentsInPanel();
+            }
+        }
+    });
 }
 
 // Check URL parameters for direct navigation
@@ -273,10 +322,10 @@ function submitComment() {
         return;
     }
     
-    // Save author name
+    // Save author name locally
     localStorage.setItem('cameraPlanner_authorName', author);
     
-    // Add comment
+    // Add comment to Firebase
     addComment({
         cameraId: currentCamera.id,
         author: author,
@@ -285,9 +334,6 @@ function submitComment() {
     
     // Clear text input
     textInput.value = '';
-    
-    // Refresh the panel
-    renderFOVCommentsInPanel();
 }
 
 function navigateToCameraFromComment(cameraId) {
@@ -301,22 +347,18 @@ function navigateToCameraFromComment(cameraId) {
 }
 
 // ==========================================
-// COMMENTS DATA FUNCTIONS
+// COMMENTS DATA FUNCTIONS (FIREBASE)
 // ==========================================
 
 function getCommentsForCamera(cameraId) {
-    const allComments = JSON.parse(localStorage.getItem(COMMENTS_STORAGE_KEY) || '[]');
-    return allComments.filter(c => c.cameraId === cameraId && !c.archived);
+    return commentsData.filter(c => c.cameraId === cameraId && !c.archived);
 }
 
 function getCommentsForFloor(floorId) {
-    const allComments = JSON.parse(localStorage.getItem(COMMENTS_STORAGE_KEY) || '[]');
-    return allComments.filter(c => c.floorId === floorId && !c.archived);
+    return commentsData.filter(c => c.floorId === floorId && !c.archived);
 }
 
 function addComment(commentData) {
-    const comments = JSON.parse(localStorage.getItem(COMMENTS_STORAGE_KEY) || '[]');
-    
     const newComment = {
         id: Date.now(),
         cameraId: commentData.cameraId,
@@ -327,11 +369,8 @@ function addComment(commentData) {
         archived: false
     };
     
-    comments.push(newComment);
-    localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
-    
-    // Update floor comments count
-    updateFloorCommentsCount();
+    // Push to Firebase (will auto-generate key)
+    commentsRef.push(newComment);
     
     // Notify iframe if it exists
     const iframe = document.getElementById('camera-view-frame');
