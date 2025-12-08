@@ -1,61 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Planner - Project Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; color: #e2e8f0; }
+        .header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #334155; padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-icon svg { width: 24px; height: 24px; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        .user-info { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.8rem; background: #1e293b; border-radius: 8px; border: 1px solid #334155; }
+        .user-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: white; }
+        .user-name { font-size: 0.9rem; color: #e2e8f0; }
+        .user-role { font-size: 0.75rem; color: #64748b; }
+        .connection-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #94a3b8; padding: 0.4rem 0.8rem; background: #1e293b; border-radius: 6px; border: 1px solid #334155; }
+        .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
+        .connection-dot.connected { background: #22c55e; }
+        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: inherit; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; border: none; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .btn-secondary { background: #334155; color: #e2e8f0; border: 1px solid #475569; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .btn svg { width: 18px; height: 18px; }
+        .main-content { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .project-hero { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem; border: 1px solid #475569; display: grid; grid-template-columns: 300px 1fr; gap: 2.5rem; align-items: start; }
+        .project-image-container { position: relative; }
+        .project-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; background: #0f172a; border: 2px solid #475569; }
+        .image-upload-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); border-radius: 12px; display: none; align-items: center; justify-content: center; cursor: pointer; }
+        .edit-mode .image-upload-overlay { display: flex; }
+        .image-upload-overlay span { color: white; font-size: 0.9rem; }
+        .project-info { display: flex; flex-direction: column; gap: 1.5rem; }
+        .project-title-display { font-size: 2.25rem; font-weight: 700; color: #f1f5f9; }
+        .project-title-input { font-size: 2.25rem; font-weight: 700; color: #f1f5f9; background: #0f172a; border: 2px solid #3b82f6; border-radius: 8px; padding: 0.5rem 1rem; width: 100%; display: none; font-family: inherit; }
+        .edit-mode .project-title-display { display: none; }
+        .edit-mode .project-title-input { display: block; }
+        .personnel-section { background: #0f172a; border-radius: 12px; border: 1px solid #334155; overflow: hidden; }
+        .personnel-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: #1e293b; border-bottom: 1px solid #334155; flex-wrap: wrap; gap: 0.5rem; }
+        .personnel-header h3 { font-size: 1rem; color: #f1f5f9; font-weight: 600; }
+        .personnel-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .search-input { padding: 0.4rem 0.75rem; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #e2e8f0; font-size: 0.85rem; width: 150px; font-family: inherit; }
+        .search-input::placeholder { color: #64748b; }
+        .search-input:focus { outline: none; border-color: #3b82f6; }
+        .sort-select { padding: 0.4rem 0.75rem; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #e2e8f0; font-size: 0.85rem; font-family: inherit; cursor: pointer; }
+        .personnel-list { max-height: 180px; overflow: hidden; transition: max-height 0.3s ease; }
+        .personnel-list.expanded { max-height: 2000px; }
+        .personnel-card { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid #334155; align-items: center; }
+        .personnel-card:last-child { border-bottom: none; }
+        .personnel-card.edit-row { grid-template-columns: 1fr 1fr 1fr 1fr auto; }
+        .personnel-field { display: flex; flex-direction: column; gap: 0.25rem; }
+        .personnel-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .personnel-value { color: #e2e8f0; font-size: 0.95rem; }
+        .personnel-value.company { color: #3b82f6; }
+        .personnel-input { background: #1e293b; border: 1px solid #475569; border-radius: 6px; padding: 0.5rem; color: #e2e8f0; font-size: 0.9rem; font-family: inherit; display: none; }
+        .edit-mode .personnel-value { display: none; }
+        .edit-mode .personnel-input { display: block; }
+        .remove-personnel-btn { background: #dc2626; color: white; border: none; border-radius: 6px; padding: 0.5rem; cursor: pointer; display: none; }
+        .edit-mode .remove-personnel-btn { display: block; }
+        .personnel-footer { padding: 0.75rem 1.25rem; background: #1e293b; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .expand-btn { background: transparent; border: none; color: #3b82f6; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-family: inherit; padding: 0; }
+        .expand-btn:hover { color: #60a5fa; }
+        .expand-btn svg { width: 16px; height: 16px; transition: transform 0.3s; }
+        .expand-btn.expanded svg { transform: rotate(180deg); }
+        .personnel-count { font-size: 0.85rem; color: #64748b; }
+        .add-personnel-btn { background: transparent; border: 2px dashed #475569; border-radius: 10px; padding: 1rem; color: #64748b; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; margin: 1rem 1.25rem; }
+        .add-personnel-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+        .edit-mode .add-personnel-btn { display: flex; }
+        .section-title { font-size: 1.5rem; font-weight: 600; color: #f1f5f9; }
+        .admin-panel { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; border: 1px solid #475569; display: none; }
+        .admin-panel.visible { display: block; }
+        .admin-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #334155; padding-bottom: 1rem; }
+        .admin-tab { padding: 0.5rem 1rem; border-radius: 8px; border: none; background: transparent; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+        .admin-tab:hover { background: #334155; }
+        .admin-tab.active { background: #3b82f6; color: white; }
+        .admin-tab .badge { background: rgba(255,255,255,0.2); padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.75rem; margin-left: 0.5rem; }
+        .admin-content { display: none; }
+        .admin-content.active { display: block; }
+        .user-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .user-card { background: #0f172a; border-radius: 10px; padding: 1rem 1.25rem; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .user-card-info { display: flex; align-items: center; gap: 1rem; }
+        .user-card-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; color: white; }
+        .user-card-details h4 { color: #f1f5f9; font-size: 0.95rem; margin-bottom: 0.25rem; }
+        .user-card-details p { color: #64748b; font-size: 0.8rem; }
+        .user-card-actions { display: flex; gap: 0.5rem; align-items: center; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status-badge.member { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-badge.admin { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .status-select { padding: 0.4rem 0.75rem; background: #1e293b; border: 1px solid #475569; border-radius: 6px; color: #e2e8f0; font-size: 0.8rem; font-family: inherit; cursor: pointer; }
+        .comments-section { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 20px; padding: 2rem; border: 1px solid #475569; }
+        .comments-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .comments-header-left { display: flex; align-items: center; gap: 1rem; }
+        .delete-all-btn { display: none; padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .edit-mode .delete-all-btn { display: inline-flex; }
+        .comments-tabs { display: flex; gap: 0.5rem; }
+        .tab-btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; background: transparent; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+        .tab-btn:hover { background: #334155; }
+        .tab-btn.active { background: #3b82f6; color: white; }
+        .tab-btn .badge { background: rgba(255,255,255,0.2); padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.75rem; margin-left: 0.5rem; }
+        .comment-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #334155; }
+        .filter-btn { padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-family: inherit; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+        .filter-btn:hover { background: #334155; border-color: #3b82f6; }
+        .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .filter-btn .count { background: rgba(255,255,255,0.2); padding: 0.1rem 0.4rem; border-radius: 8px; font-size: 0.7rem; }
+        .comments-list { display: flex; flex-direction: column; gap: 1rem; max-height: 500px; overflow-y: auto; }
+        .comment-card { background: #0f172a; border-radius: 12px; padding: 1.25rem; border: 1px solid #334155; }
+        .comment-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+        .comment-camera { font-family: 'Space Mono', monospace; color: #3b82f6; font-size: 0.9rem; font-weight: 600; }
+        .comment-floor { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
+        .comment-time { font-size: 0.75rem; color: #64748b; font-family: 'Space Mono', monospace; }
+        .comment-author { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .comment-text { color: #e2e8f0; line-height: 1.5; }
+        .comment-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #334155; }
+        .comment-admin-actions { display: flex; align-items: center; gap: 1rem; }
+        .archive-toggle { display: none; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.85rem; cursor: pointer; }
+        .edit-mode .archive-toggle { display: flex; }
+        .archive-toggle input { width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6; }
+        .delete-comment-btn { display: none; align-items: center; gap: 0.3rem; background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-family: inherit; }
+        .delete-comment-btn:hover { background: #ef4444; color: white; }
+        .edit-mode .delete-comment-btn { display: inline-flex; }
+        .view-camera-link { color: #3b82f6; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+        .view-camera-link:hover { text-decoration: underline; }
+        .no-comments { text-align: center; padding: 3rem; color: #64748b; }
+        .no-comments svg { width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1e293b; border-radius: 16px; padding: 2rem; max-width: 400px; width: 90%; border: 1px solid #475569; }
+        .modal h2 { color: #f1f5f9; margin-bottom: 0.5rem; }
+        .modal p { color: #94a3b8; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+        .warning-text { color: #f59e0b; font-size: 0.85rem; margin-bottom: 1rem; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; flex-direction: column; gap: 1rem; }
+        .loading-overlay.hidden { display: none; }
+        .spinner { width: 48px; height: 48px; border: 4px solid #334155; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 900px) { .project-hero { grid-template-columns: 1fr; } .personnel-card { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .header-content { flex-direction: column; } .personnel-card { grid-template-columns: 1fr; } .user-info { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><p>Loading...</p></div>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></div>
+                <span class="logo-text">Camera Planner</span>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <div><div class="user-name" id="user-name">Loading...</div><div class="user-role" id="user-role">-</div></div>
+                </div>
+                <div class="connection-status"><div class="connection-dot" id="connection-dot"></div><span id="connection-text">Connecting...</span></div>
+                <button class="btn btn-secondary" id="admin-btn" onclick="toggleAdminPanel()" style="display: none;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>Admin</button>
+                <button class="btn btn-warning" id="exit-edit-btn" onclick="exitEditMode()" style="display: none;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>Exit Editing</button>
+                <a href="index.html" class="btn btn-primary"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>View Floor Plans</a>
+                <button class="btn btn-secondary" onclick="handleLogout()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>Logout</button>
+            </div>
+        </div>
+    </header>
+    <main class="main-content">
+        <section class="admin-panel" id="admin-panel">
+            <div class="section-header" style="margin-bottom:1.5rem"><h2 class="section-title">Admin Panel</h2></div>
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="showAdminTab('users', this)">Users <span class="badge" id="pending-count">0</span></button>
+                <button class="admin-tab" onclick="showAdminTab('settings', this)">Settings</button>
+            </div>
+            <div class="admin-content active" id="admin-users"><div class="user-list" id="user-list"></div></div>
+            <div class="admin-content" id="admin-settings"><p style="color: #94a3b8;">Project settings coming soon...</p></div>
+        </section>
+        <section class="project-hero" id="project-hero">
+            <div class="project-image-container">
+                <img src="" alt="Project" class="project-image" id="project-image">
+                <div class="image-upload-overlay" onclick="document.getElementById('image-input').click()"><span>Click to upload image</span></div>
+                <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+            </div>
+            <div class="project-info">
+                <div>
+                    <h1 class="project-title-display" id="project-title-display">Project Name</h1>
+                    <input type="text" class="project-title-input" id="project-title-input" placeholder="Enter project name">
+                </div>
+                <div class="personnel-section">
+                    <div class="personnel-header">
+                        <h3>Project Personnel</h3>
+                        <div class="personnel-controls">
+                            <input type="text" class="search-input" id="personnel-search" placeholder="Search..." oninput="filterPersonnel()">
+                            <select class="sort-select" id="personnel-sort" onchange="sortPersonnel()">
+                                <option value="name-asc">Name A-Z</option>
+                                <option value="name-desc">Name Z-A</option>
+                                <option value="company-asc">Company A-Z</option>
+                                <option value="company-desc">Company Z-A</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="personnel-list" id="personnel-list"></div>
+                    <button class="add-personnel-btn" onclick="addPersonnel()"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Personnel</button>
+                    <div class="personnel-footer">
+                        <button class="expand-btn" id="expand-btn" onclick="togglePersonnelExpand()"><span id="expand-text">Show all</span><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
+                        <span class="personnel-count" id="personnel-count">0 people</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="comments-section" id="comments-section">
+            <div class="comments-header">
+                <div class="comments-header-left">
+                    <h2 class="section-title">Recent Comments</h2>
+                    <button class="btn btn-danger delete-all-btn" onclick="openDeleteAllModal()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>Delete All</button>
+                </div>
+                <div class="comments-tabs">
+                    <button class="tab-btn active" id="active-tab" onclick="showActiveComments()">Active <span class="badge" id="active-count">0</span></button>
+                    <button class="tab-btn" id="archived-tab" onclick="showArchivedComments()">Archived <span class="badge" id="archived-count">0</span></button>
+                </div>
+            </div>
+            <div class="comment-filters" id="comment-filters"></div>
+            <div class="comments-list" id="comments-list"></div>
+        </section>
+    </main>
+    <div class="modal-overlay" id="delete-modal"><div class="modal"><h2>Delete All Comments</h2><p class="warning-text">⚠️ This action cannot be undone!</p><p>Are you sure you want to delete all comments?</p><div class="modal-actions"><button class="btn btn-secondary" onclick="closeDeleteAllModal()">Cancel</button><button class="btn btn-danger" onclick="confirmDeleteAll()">Delete All</button></div></div></div>
+    <div class="modal-overlay" id="delete-comment-modal"><div class="modal"><h2>Delete Comment</h2><p>Are you sure you want to delete this comment?</p><div class="modal-actions"><button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button><button class="btn btn-danger" onclick="executeDeleteComment()">OK</button></div></div></div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="floor-plans-config.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-yHyl8MBiCS455xHIDYkMLDXOyf83_8Y",
+            authDomain: "project-001-camera-planner.firebaseapp.com",
+            databaseURL: "https://project-001-camera-planner-default-rtdb.firebaseio.com",
+            projectId: "project-001-camera-planner",
+            storageBucket: "project-001-camera-planner.firebasestorage.app",
+            messagingSenderId: "461451825806",
+            appId: "1:461451825806:web:7267d184ca0718436befdf"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const projectDataRef = database.ref('projectData');
+        const commentsRef = database.ref('comments');
+        const usersRef = database.ref('users');
+
+        let currentUser = null, currentUserData = null, isEditMode = false, showingArchived = false, currentFilter = 'all', personnelExpanded = false;
+        let projectData = { title: 'Project Name', image: '', personnel: [] };
+        let commentsData = [], usersData = [], filteredPersonnel = [];
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            currentUser = user;
+            const snapshot = await usersRef.child(user.uid).once('value');
+            currentUserData = snapshot.val();
+            if (!currentUserData || currentUserData.status === 'pending') { window.location.href = 'login.html'; return; }
+            document.getElementById('user-name').textContent = currentUserData.name || 'User';
+            document.getElementById('user-role').textContent = currentUserData.status === 'admin' ? 'Admin' : 'Member';
+            document.getElementById('user-avatar').textContent = (currentUserData.name || 'U').charAt(0).toUpperCase();
+            if (currentUserData.status === 'admin') document.getElementById('admin-btn').style.display = 'inline-flex';
+            initializeFirebaseListeners();
+            document.getElementById('loading-overlay').classList.add('hidden');
+        });
+
+        function initializeFirebaseListeners() {
+            projectDataRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) { projectData = data; if (!projectData.personnel) projectData.personnel = []; }
+                renderProjectData(); filterPersonnel();
+            });
+            commentsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                commentsData = data ? Object.entries(data).map(([key, value]) => ({ ...value, firebaseKey: key })) : [];
+                renderCommentFilters(); renderComments();
+            });
+            usersRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                usersData = data ? Object.entries(data).map(([key, value]) => ({ ...value, odaj: key })) : [];
+                renderUserList(); updatePendingCount();
+            });
+            database.ref('.info/connected').on('value', (snapshot) => {
+                const connected = snapshot.val();
+                document.getElementById('connection-dot').classList.toggle('connected', connected);
+                document.getElementById('connection-text').textContent = connected ? 'Live' : 'Offline';
+            });
+        }
+
+        async function handleLogout() { await auth.signOut(); window.location.href = 'login.html'; }
+
+        function toggleAdminPanel() {
+            const panel = document.getElementById('admin-panel');
+            if (panel.classList.contains('visible')) { panel.classList.remove('visible'); exitEditMode(); }
+            else { panel.classList.add('visible'); enterEditMode(); }
+        }
+
+        function showAdminTab(tabName, btn) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('admin-' + tabName).classList.add('active');
+        }
+
+        function enterEditMode() {
+            isEditMode = true;
+            document.getElementById('project-hero').classList.add('edit-mode');
+            document.getElementById('comments-section').classList.add('edit-mode');
+            document.getElementById('exit-edit-btn').style.display = 'inline-flex';
+            document.getElementById('admin-btn').style.display = 'none';
+            renderComments(); filterPersonnel();
+        }
+
+        function exitEditMode() {
+            isEditMode = false;
+            document.getElementById('project-hero').classList.remove('edit-mode');
+            document.getElementById('comments-section').classList.remove('edit-mode');
+            document.getElementById('admin-panel').classList.remove('visible');
+            document.getElementById('exit-edit-btn').style.display = 'none';
+            document.getElementById('admin-btn').style.display = 'inline-flex';
+            saveProjectData(); renderComments(); filterPersonnel();
+        }
+
+        function updatePendingCount() {
+            const pending = usersData.filter(u => u.status === 'pending').length;
+            document.getElementById('pending-count').textContent = pending;
+        }
+
+        function renderUserList() {
+            const container = document.getElementById('user-list');
+            if (usersData.length === 0) { container.innerHTML = '<p style="color:#64748b;text-align:center;padding:2rem;">No users yet.</p>'; return; }
+            const sorted = [...usersData].sort((a, b) => {
+                if (a.status === 'pending' && b.status !== 'pending') return -1;
+                if (b.status === 'pending' && a.status !== 'pending') return 1;
+                return (a.name || '').localeCompare(b.name || '');
+            });
+            container.innerHTML = sorted.map(user => `
+                <div class="user-card">
+                    <div class="user-card-info">
+                        <div class="user-card-avatar">${(user.name || 'U').charAt(0).toUpperCase()}</div>
+                        <div class="user-card-details"><h4>${escapeHtml(user.name || 'Unknown')}</h4><p>${escapeHtml(user.email || '')} • ${escapeHtml(user.company || '')} • ${escapeHtml(user.role || '')}</p></div>
+                    </div>
+                    <div class="user-card-actions">
+                        <span class="status-badge ${user.status}">${user.status}</span>
+                        <select class="status-select" onchange="updateUserStatus('${user.uid}', this.value)" ${user.uid === currentUser.uid ? 'disabled' : ''}>
+                            <option value="pending" ${user.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="member" ${user.status === 'member' ? 'selected' : ''}>Member</option>
+                            <option value="admin" ${user.status === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                        ${user.uid !== currentUser.uid ? '<button class="btn btn-danger btn-sm" onclick="removeUser(\'' + user.uid + '\')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>' : ''}
+                    </div>
                 </div>
             `).join('');
         }
 
-        function showActiveComments() {
-            showingArchived = false;
-            document.getElementById('active-tab').classList.add('active');
-            document.getElementById('archived-tab').classList.remove('active');
-            renderCommentFilters();
-            renderComments();
+        async function updateUserStatus(odaj, status) { await usersRef.child(odaj).update({ status: status }); }
+        async function removeUser(odaj) { if (confirm('Remove this user?')) await usersRef.child(odaj).remove(); }
+
+        function renderProjectData() {
+            document.getElementById('project-title-display').textContent = projectData.title || 'Project Name';
+            document.getElementById('project-title-input').value = projectData.title || '';
+            document.getElementById('project-image').src = projectData.image || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="225" viewBox="0 0 300 225"><rect fill="#1e293b" width="300" height="225"/><text x="150" y="112" text-anchor="middle" fill="#475569" font-family="sans-serif" font-size="14">No Image</text></svg>');
         }
 
-        function showArchivedComments() {
-            showingArchived = true;
-            document.getElementById('archived-tab').classList.add('active');
-            document.getElementById('active-tab').classList.remove('active');
-            renderComments();
-        }
-
-        function toggleArchive(firebaseKey, archived) {
-            commentsRef.child(firebaseKey).update({ archived: archived });
-        }
-
-        // ==========================================
-        // UTILITY FUNCTIONS
-        // ==========================================
-        function formatTimestamp(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
-            
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+        function saveProjectData() {
+            projectData.title = document.getElementById('project-title-input').value || 'Project Name';
+            const cards = document.querySelectorAll('.personnel-card');
+            projectData.personnel = [];
+            cards.forEach(card => {
+                const inputs = card.querySelectorAll('.personnel-input');
+                if (inputs.length >= 4) projectData.personnel.push({ name: inputs[0].value, company: inputs[1].value, role: inputs[2].value, email: inputs[3].value });
             });
+            projectDataRef.set(projectData);
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 1024 * 1024) { alert('Image too large. Please use an image under 1MB.'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) { projectData.image = e.target.result; document.getElementById('project-image').src = e.target.result; projectDataRef.set(projectData); };
+            reader.readAsDataURL(file);
         }
 
-        function escapeAttr(text) {
-            if (!text) return '';
-            return text.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        function filterPersonnel() {
+            const searchTerm = document.getElementById('personnel-search').value.toLowerCase();
+            if (!projectData.personnel) projectData.personnel = [];
+            filteredPersonnel = projectData.personnel.filter(p => {
+                const n = (p.name || '').toLowerCase(), c = (p.company || '').toLowerCase(), r = (p.role || '').toLowerCase(), e = (p.email || '').toLowerCase();
+                return n.includes(searchTerm) || c.includes(searchTerm) || r.includes(searchTerm) || e.includes(searchTerm);
+            });
+            sortPersonnel();
         }
+
+        function sortPersonnel() {
+            const sortValue = document.getElementById('personnel-sort').value;
+            filteredPersonnel.sort((a, b) => {
+                let aVal = sortValue.startsWith('name') ? (a.name || '').toLowerCase() : (a.company || '').toLowerCase();
+                let bVal = sortValue.startsWith('name') ? (b.name || '').toLowerCase() : (b.company || '').toLowerCase();
+                return sortValue.endsWith('desc') ? bVal.localeCompare(aVal) : aVal.localeCompare(bVal);
+            });
+            renderPersonnel();
+        }
+        function renderPersonnel() {
+            const container = document.getElementById('personnel-list');
+            const countEl = document.getElementById('personnel-count');
+            const expandBtn = document.getElementById('expand-btn');
+            const expandText = document.getElementById('expand-text');
+            countEl.textContent = filteredPersonnel.length + ' ' + (filteredPersonnel.length === 1 ? 'person' : 'people');
+            if (filteredPersonnel.length === 0) { container.innerHTML = '<p style="color:#64748b;text-align:center;padding:1.5rem;">No personnel found.</p>'; expandBtn.style.display = 'none'; return; }
+            if (filteredPersonnel.length <= 3) { expandBtn.style.display = 'none'; container.classList.add('expanded'); }
+            else {
+                expandBtn.style.display = 'flex';
+                expandText.textContent = personnelExpanded ? 'Show less' : 'Show all (' + filteredPersonnel.length + ')';
+                expandBtn.classList.toggle('expanded', personnelExpanded);
+                container.classList.toggle('expanded', personnelExpanded);
+            }
+            container.innerHTML = filteredPersonnel.map((person, idx) => {
+                const originalIndex = projectData.personnel.findIndex(p => p.name === person.name && p.email === person.email);
+                return '<div class="personnel-card edit-row" data-index="' + originalIndex + '">' +
+                    '<div class="personnel-field"><span class="personnel-label">Name</span><span class="personnel-value">' + (escapeHtml(person.name) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.name) + '" placeholder="Name"></div>' +
+                    '<div class="personnel-field"><span class="personnel-label">Company</span><span class="personnel-value company">' + (escapeHtml(person.company) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.company) + '" placeholder="Company"></div>' +
+                    '<div class="personnel-field"><span class="personnel-label">Role</span><span class="personnel-value">' + (escapeHtml(person.role) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.role) + '" placeholder="Role"></div>' +
+                    '<div class="personnel-field"><span class="personnel-label">Email</span><span class="personnel-value">' + (escapeHtml(person.email) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.email) + '" placeholder="Email"></div>' +
+                    '<button class="remove-personnel-btn" onclick="removePersonnel(' + originalIndex + ')"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>';
+            }).join('');
+            if (isEditMode) document.getElementById('project-hero').classList.add('edit-mode');
+        }
+
+        function togglePersonnelExpand() { personnelExpanded = !personnelExpanded; renderPersonnel(); }
+        function addPersonnel() { if (!projectData.personnel) projectData.personnel = []; projectData.personnel.push({ name: '', company: '', role: '', email: '' }); filterPersonnel(); }
+        function removePersonnel(index) { if (index >= 0 && index < projectData.personnel.length) { projectData.personnel.splice(index, 1); filterPersonnel(); } }
+
+        function openDeleteAllModal() { document.getElementById('delete-modal').classList.add('active'); }
+        function closeDeleteAllModal() { document.getElementById('delete-modal').classList.remove('active'); }
+        function confirmDeleteAll() { commentsRef.remove(); closeDeleteAllModal(); }
+        let commentToDelete = null;
+        function confirmDeleteComment(firebaseKey) { commentToDelete = firebaseKey; document.getElementById('delete-comment-modal').classList.add('active'); }
+        function closeDeleteCommentModal() { commentToDelete = null; document.getElementById('delete-comment-modal').classList.remove('active'); }
+        function executeDeleteComment() { if (commentToDelete) commentsRef.child(commentToDelete).remove(); closeDeleteCommentModal(); }
+
+        function renderCommentFilters() {
+            const container = document.getElementById('comment-filters');
+            const floorCounts = {};
+            commentsData.filter(c => !c.archived).forEach(c => { const floor = c.floorId || 'Unknown'; floorCounts[floor] = (floorCounts[floor] || 0) + 1; });
+            const totalActive = commentsData.filter(c => !c.archived).length;
+            let html = '<button class="filter-btn ' + (currentFilter === 'all' ? 'active' : '') + '" onclick="setFilter(\'all\')">All Comments <span class="count">' + totalActive + '</span></button>';
+            Object.keys(floorCounts).sort().forEach(floor => {
+                html += '<button class="filter-btn ' + (currentFilter === floor ? 'active' : '') + '" onclick="setFilter(\'' + escapeAttr(floor) + '\')">' + escapeHtml(floor) + ' <span class="count">' + floorCounts[floor] + '</span></button>';
+            });
+            container.innerHTML = html;
+        }
+
+        function setFilter(filter) { currentFilter = filter; renderCommentFilters(); renderComments(); }
+
+        function renderComments() {
+            const container = document.getElementById('comments-list');
+            const activeComments = commentsData.filter(c => !c.archived);
+            const archivedComments = commentsData.filter(c => c.archived);
+            document.getElementById('active-count').textContent = activeComments.length;
+            document.getElementById('archived-count').textContent = archivedComments.length;
+            let displayComments = showingArchived ? archivedComments : activeComments;
+            if (currentFilter !== 'all' && !showingArchived) displayComments = displayComments.filter(c => c.floorId === currentFilter);
+            if (displayComments.length === 0) {
+                container.innerHTML = '<div class="no-comments"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><p>' + (showingArchived ? 'No archived comments' : 'No comments yet') + '</p></div>';
+                return;
+            }
+            const sorted = [...displayComments].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            container.innerHTML = sorted.map(comment => 
+                '<div class="comment-card"><div class="comment-header"><div><div class="comment-camera">' + escapeHtml(comment.cameraId) + '</div><div class="comment-floor">' + escapeHtml(comment.floorId || 'Unknown floor') + '</div></div><span class="comment-time">' + formatTimestamp(comment.timestamp) + '</span></div><div class="comment-author">by ' + escapeHtml(comment.author) + '</div><div class="comment-text">' + escapeHtml(comment.text) + '</div><div class="comment-actions"><div class="comment-admin-actions"><label class="archive-toggle"><input type="checkbox" ' + (comment.archived ? 'checked' : '') + ' onchange="toggleArchive(\'' + comment.firebaseKey + '\', this.checked)">' + (comment.archived ? 'Archived' : 'Archive') + '</label><button class="delete-comment-btn" onclick="confirmDeleteComment(\'' + comment.firebaseKey + '\')"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>Delete</button></div><a href="index.html?floor=' + encodeURIComponent(comment.floorId) + '&camera=' + encodeURIComponent(comment.cameraId) + '&openComments=true" class="view-camera-link"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>View Camera</a></div></div>'
+            ).join('');
+        }
+
+        function showActiveComments() { showingArchived = false; document.getElementById('active-tab').classList.add('active'); document.getElementById('archived-tab').classList.remove('active'); renderCommentFilters(); renderComments(); }
+        function showArchivedComments() { showingArchived = true; document.getElementById('archived-tab').classList.add('active'); document.getElementById('active-tab').classList.remove('active'); renderComments(); }
+        function toggleArchive(firebaseKey, archived) { commentsRef.child(firebaseKey).update({ archived: archived }); }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp), now = new Date(), diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000), diffHours = Math.floor(diffMs / 3600000), diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return diffMins + 'm ago';
+            if (diffHours < 24) return diffHours + 'h ago';
+            if (diffDays < 7) return diffDays + 'd ago';
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function escapeAttr(text) { if (!text) return ''; return text.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
     </script>
 </body>
 </html>
