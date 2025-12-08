@@ -702,11 +702,11 @@ function addCameraHotspots() {
             hotspot.classList.add('hidden');
         }
         
-        let fovLabel = "FOV 1";
+        let fovLabel = "V1";
         if (camera.id.includes('FOV')) {
             const fovMatch = camera.id.match(/FOV(\d+)/);
             if (fovMatch) {
-                fovLabel = `FOV ${fovMatch[1]}`;
+                fovLabel = `V${fovMatch[1]}`;
             }
         }
         

@@ -551,6 +551,36 @@
             accent-color: #3b82f6;
         }
 
+        .delete-comment-btn {
+            display: none;
+            align-items: center;
+            gap: 0.3rem;
+            background: transparent;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .delete-comment-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .edit-mode .delete-comment-btn {
+            display: inline-flex;
+        }
+
+        .comment-admin-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
         .view-camera-link {
             color: #3b82f6;
             font-size: 0.85rem;
@@ -829,6 +859,18 @@
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closeDeleteAllModal()">Cancel</button>
                 <button class="btn btn-danger" onclick="confirmDeleteAll()">Delete All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Single Comment Modal -->
+    <div class="modal-overlay" id="delete-comment-modal">
+        <div class="modal">
+            <h2>Delete Comment</h2>
+            <p>Are you sure you want to delete this comment?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="executeDeleteComment()">OK</button>
             </div>
         </div>
     </div>
@@ -1142,6 +1184,28 @@
         }
 
         // ==========================================
+        // DELETE SINGLE COMMENT
+        // ==========================================
+        let commentToDelete = null;
+
+        function confirmDeleteComment(firebaseKey) {
+            commentToDelete = firebaseKey;
+            document.getElementById('delete-comment-modal').classList.add('active');
+        }
+
+        function closeDeleteCommentModal() {
+            commentToDelete = null;
+            document.getElementById('delete-comment-modal').classList.remove('active');
+        }
+
+        function executeDeleteComment() {
+            if (commentToDelete) {
+                commentsRef.child(commentToDelete).remove();
+            }
+            closeDeleteCommentModal();
+        }
+
+        // ==========================================
         // COMMENTS FUNCTIONS
         // ==========================================
         function renderCommentFilters() {
@@ -1219,10 +1283,18 @@
                     <div class="comment-author">by ${escapeHtml(comment.author)}</div>
                     <div class="comment-text">${escapeHtml(comment.text)}</div>
                     <div class="comment-actions">
-                        <label class="archive-toggle">
-                            <input type="checkbox" ${comment.archived ? 'checked' : ''} onchange="toggleArchive('${comment.firebaseKey}', this.checked)">
-                            ${comment.archived ? 'Archived' : 'Archive'}
-                        </label>
+                        <div class="comment-admin-actions">
+                            <label class="archive-toggle">
+                                <input type="checkbox" ${comment.archived ? 'checked' : ''} onchange="toggleArchive('${comment.firebaseKey}', this.checked)">
+                                ${comment.archived ? 'Archived' : 'Archive'}
+                            </label>
+                            <button class="delete-comment-btn" onclick="confirmDeleteComment('${comment.firebaseKey}')">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
                         <a href="index.html?floor=${encodeURIComponent(comment.floorId)}&camera=${encodeURIComponent(comment.cameraId)}&openComments=true" class="view-camera-link">
                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
