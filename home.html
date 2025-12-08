@@ -279,7 +279,7 @@
             });
             usersRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                usersData = data ? Object.entries(data).map(([key, value]) => ({ ...value, odaj: key })) : [];
+                usersData = data ? Object.entries(data).map(([key, value]) => ({ ...value, uid: key })) : [];
                 renderUserList(); updatePendingCount();
             });
             database.ref('.info/connected').on('value', (snapshot) => {
@@ -355,8 +355,8 @@
             `).join('');
         }
 
-        async function updateUserStatus(odaj, status) { await usersRef.child(odaj).update({ status: status }); }
-        async function removeUser(odaj) { if (confirm('Remove this user?')) await usersRef.child(odaj).remove(); }
+        async function updateUserStatus(uid, status) { await usersRef.child(uid).update({ status: status }); }
+        async function removeUser(uid) { if (confirm('Remove this user?')) await usersRef.child(uid).remove(); }
 
         function renderProjectData() {
             document.getElementById('project-title-display').textContent = projectData.title || 'Project Name';
