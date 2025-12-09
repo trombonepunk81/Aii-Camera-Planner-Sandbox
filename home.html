@@ -202,7 +202,6 @@
                         </div>
                     </div>
                     <div class="personnel-list" id="personnel-list"></div>
-                    <button class="add-personnel-btn" onclick="addPersonnel()"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>Add Personnel</button>
                     <div class="personnel-footer">
                         <button class="expand-btn" id="expand-btn" onclick="togglePersonnelExpand()"><span id="expand-text">Show all</span><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button>
                         <span class="personnel-count" id="personnel-count">0 people</span>
@@ -366,12 +365,6 @@
 
         function saveProjectData() {
             projectData.title = document.getElementById('project-title-input').value || 'Project Name';
-            const cards = document.querySelectorAll('.personnel-card');
-            projectData.personnel = [];
-            cards.forEach(card => {
-                const inputs = card.querySelectorAll('.personnel-input');
-                if (inputs.length >= 4) projectData.personnel.push({ name: inputs[0].value, company: inputs[1].value, role: inputs[2].value, email: inputs[3].value });
-            });
             projectDataRef.set(projectData);
         }
 
@@ -386,8 +379,9 @@
 
         function filterPersonnel() {
             const searchTerm = document.getElementById('personnel-search').value.toLowerCase();
-            if (!projectData.personnel) projectData.personnel = [];
-            filteredPersonnel = projectData.personnel.filter(p => {
+            // Use approved users (members and admins) as personnel
+            const approvedUsers = usersData.filter(u => u.status === 'member' || u.status === 'admin');
+            filteredPersonnel = approvedUsers.filter(p => {
                 const n = (p.name || '').toLowerCase(), c = (p.company || '').toLowerCase(), r = (p.role || '').toLowerCase(), e = (p.email || '').toLowerCase();
                 return n.includes(searchTerm) || c.includes(searchTerm) || r.includes(searchTerm) || e.includes(searchTerm);
             });
@@ -417,21 +411,18 @@
                 expandBtn.classList.toggle('expanded', personnelExpanded);
                 container.classList.toggle('expanded', personnelExpanded);
             }
-            container.innerHTML = filteredPersonnel.map((person, idx) => {
-                const originalIndex = projectData.personnel.findIndex(p => p.name === person.name && p.email === person.email);
-                return '<div class="personnel-card edit-row" data-index="' + originalIndex + '">' +
-                    '<div class="personnel-field"><span class="personnel-label">Name</span><span class="personnel-value">' + (escapeHtml(person.name) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.name) + '" placeholder="Name"></div>' +
-                    '<div class="personnel-field"><span class="personnel-label">Company</span><span class="personnel-value company">' + (escapeHtml(person.company) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.company) + '" placeholder="Company"></div>' +
-                    '<div class="personnel-field"><span class="personnel-label">Role</span><span class="personnel-value">' + (escapeHtml(person.role) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.role) + '" placeholder="Role"></div>' +
-                    '<div class="personnel-field"><span class="personnel-label">Email</span><span class="personnel-value">' + (escapeHtml(person.email) || '-') + '</span><input type="text" class="personnel-input" value="' + escapeAttr(person.email) + '" placeholder="Email"></div>' +
-                    '<button class="remove-personnel-btn" onclick="removePersonnel(' + originalIndex + ')"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>';
+            container.innerHTML = filteredPersonnel.map((person) => {
+                const statusBadge = person.status === 'admin' ? '<span style="background:rgba(139,92,246,0.2);color:#a78bfa;padding:0.15rem 0.5rem;border-radius:10px;font-size:0.7rem;margin-left:0.5rem;">Admin</span>' : '';
+                return '<div class="personnel-card">' +
+                    '<div class="personnel-field"><span class="personnel-label">Name</span><span class="personnel-value">' + (escapeHtml(person.name) || '-') + statusBadge + '</span></div>' +
+                    '<div class="personnel-field"><span class="personnel-label">Company</span><span class="personnel-value company">' + (escapeHtml(person.company) || '-') + '</span></div>' +
+                    '<div class="personnel-field"><span class="personnel-label">Role</span><span class="personnel-value">' + (escapeHtml(person.role) || '-') + '</span></div>' +
+                    '<div class="personnel-field"><span class="personnel-label">Email</span><span class="personnel-value">' + (escapeHtml(person.email) || '-') + '</span></div>' +
+                    '</div>';
             }).join('');
-            if (isEditMode) document.getElementById('project-hero').classList.add('edit-mode');
         }
 
         function togglePersonnelExpand() { personnelExpanded = !personnelExpanded; renderPersonnel(); }
-        function addPersonnel() { if (!projectData.personnel) projectData.personnel = []; projectData.personnel.push({ name: '', company: '', role: '', email: '' }); filterPersonnel(); }
-        function removePersonnel(index) { if (index >= 0 && index < projectData.personnel.length) { projectData.personnel.splice(index, 1); filterPersonnel(); } }
 
         function openDeleteAllModal() { document.getElementById('delete-modal').classList.add('active'); }
         function closeDeleteAllModal() { document.getElementById('delete-modal').classList.remove('active'); }
