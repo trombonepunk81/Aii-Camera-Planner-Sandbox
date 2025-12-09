@@ -119,7 +119,7 @@
         .comment-time { font-size: 0.75rem; color: #64748b; font-family: 'Space Mono', monospace; }
         .comment-author { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem; }
         .comment-text { color: #e2e8f0; line-height: 1.5; }
-        .comment-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #334155; }
+        .comment-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #334155; flex-direction: row-reverse; }
         .comment-admin-actions { display: flex; align-items: center; gap: 1rem; }
         .archive-toggle { display: none; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.85rem; cursor: pointer; }
         .edit-mode .archive-toggle { display: flex; }
@@ -279,7 +279,7 @@
             usersRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 usersData = data ? Object.entries(data).map(([key, value]) => ({ ...value, uid: key })) : [];
-                renderUserList(); updatePendingCount();
+                renderUserList(); updatePendingCount(); filterPersonnel();
             });
             database.ref('.info/connected').on('value', (snapshot) => {
                 const connected = snapshot.val();

@@ -105,6 +105,18 @@
             box-shadow: none;
         }
         
+        .instructions-text {
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 600px;
+            padding: 0 1rem;
+        }
+        
+        .instructions-text strong {
+            color: #60a5fa;
+        }
+        
         .floor-comments-btn svg {
             width: 18px;
             height: 18px;
@@ -560,6 +572,9 @@
                     </svg>
                     Project Home
                 </a>
+            </div>
+            <div class="instructions-text">
+                <strong>How to navigate:</strong> Double-click on the floor plan to zoom to your desired area. Click <strong>Show CAM Links</strong> to reveal camera buttons, then click a camera view to see the field of view. Click <strong>Reset Zoom</strong> to return and explore other areas.
             </div>
             <button class="floor-comments-btn" id="floor-comments-btn" onclick="openFloorComments()" disabled>
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
